@@ -2,6 +2,8 @@
 
 ## Video reference for this lecture is the following:
 
+[![Watch the video](https://img.youtube.com/vi/8PGOWrn1YW4/maxresdefault.jpg)](https://www.youtube.com/watch?v=8PGOWrn1YW4&ab_channel=CloudWithVarJosh)
+
 ---
 ## ⭐ Support the Project  
 If this **repository** helps you, give it a ⭐ to show your support and help others discover it! 
@@ -28,6 +30,7 @@ If this **repository** helps you, give it a ⭐ to show your support and help ot
     * [Demo: Automated Sync](#demo-automated-sync)  
   * [Pruning](#pruning)  
     * [Demo: Pruning](#demo-pruning)  
+    * [What We Observed During the Demo (Important Argo CD Behavior)](#what-we-observed-during-the-demo-important-argo-cd-behavior)
   * [Self-healing](#self-healing)  
     * [Demo: Self-healing](#demo-self-healing)  
   * [Enabling All Three Features Together](#enabling-all-three-features-together)  
@@ -75,6 +78,8 @@ Official reference:
 ---
 
 ## Demo Objective: What We Will Build and Prove
+
+![Alt text](/images/4a.png)
 
 This demo walks end-to-end through a **production-style GitOps flow**, showing how **private source code** is transformed into a **reconciled Kubernetes runtime state** using **Argo CD**.
 
@@ -707,6 +712,8 @@ A feature used blindly can easily become a bug.
 
 ## Features Covered
 
+![Alt text](/images/4b.png)
+
 We will discuss and demo the following **official Argo CD features**:
 
 * **Automated Sync**
@@ -919,6 +926,64 @@ The ClusterIP Service no longer exists in the cluster.
 
 This is what allows GitOps systems to **evolve architectures safely** without leaving behind unused infrastructure.
 
+
+---
+
+## What We Observed During the Demo (Important Argo CD Behavior)
+
+During this demo, we intentionally made incremental changes to the **Application CRD** to better understand how Argo CD behaves in real scenarios. In production environments, Application CRDs are usually **stabilized early** and are not modified frequently. Most day-to-day changes happen only in workload manifests. However, because we were learning, we introduced changes step by step, which surfaced an important and subtle Argo CD behavior.
+
+### Refresh vs Sync: A Critical Distinction
+
+One key observation is the role of **Refresh** versus **Sync** in Argo CD:
+
+* **Refresh** only compares the desired state in Git with the live state in the cluster.
+* It updates the **sync status** (InSync / OutOfSync) but **never applies changes**.
+* **Actual reconciliation** of resources happens only during a **manual sync** or an **automated sync** operation.
+
+In our case, Refresh correctly showed the application as **OutOfSync**, which confirmed that Argo CD had detected the difference between Git and the cluster.
+
+### Why Pruning Did Not Happen Immediately
+
+We observed that pruning did not occur even though:
+
+* `prune: true` was added to the Application CRD
+* The Service manifest was deleted from Git
+* Automated sync was already enabled
+
+This behavior is intentional.
+
+Argo CD evaluates **whether pruning is allowed only at the start of a sync operation**. The sync that applied `prune: true` had already begun **before pruning was enabled** in the live Application spec. Because sync semantics are locked at sync start, Argo CD could not perform pruning during that same cycle.
+
+As a result:
+
+* The commit that **enabled pruning** could not prune anything
+* Pruning became effective **only after** the Application spec was updated
+* A **subsequent sync trigger** was required for pruning to act
+
+This aligns with Argo CD’s conservative design, which prevents a single Git commit from both enabling destructive behavior and deleting resources in the same reconciliation cycle.
+
+### Why the Next Commit Worked
+
+In the subsequent push, we changed the replica count from **2 to 3** and committed the change. This triggered a new automated sync cycle. At this point:
+
+* Pruning was already enabled in the live Application spec
+* Argo CD evaluated deletions at sync start
+* The replica count was updated successfully
+* The previously removed ClusterIP Service was **pruned from the cluster**
+
+This confirmed that pruning works as expected **once it is already enabled before the sync begins**.
+
+### Takeaway
+
+> Pruning is evaluated only at the **start of a sync**, not during Refresh and not dynamically during an ongoing sync.
+
+This behavior, while not explicitly documented, is consistent with Argo CD’s sync model and reinforces an important GitOps principle:
+
+* **Configuration changes that alter reconciliation behavior must be applied first**
+* **Destructive actions happen only in subsequent sync cycles**
+
+Understanding this nuance helps avoid confusion during demos and prevents surprises in production GitOps workflows.
 
 ---
 
