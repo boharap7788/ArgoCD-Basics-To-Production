@@ -2,6 +2,8 @@
 
 ## Video reference for this lecture is the following:
 
+[![Watch the video](https://img.youtube.com/vi/GAbCUmdMOHo/maxresdefault.jpg)](https://www.youtube.com/watch?v=GAbCUmdMOHo&ab_channel=CloudWithVarJosh)
+
 ---
 ## ⭐ Support the Project  
 If this **repository** helps you, give it a ⭐ to show your support and help others discover it! 
