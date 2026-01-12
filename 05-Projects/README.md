@@ -56,6 +56,8 @@ Argo CD **Projects** are the construct that provide this control.
 
 ## Why Argo CD Projects?
 
+![Alt text](/images/5a.png)
+
 As Argo CD usage grows beyond a single application, certain limitations start to appear **when no explicit governance boundaries exist**.
 
 * **Unrestricted source repositories:** Any Application can reference manifests from any Git repository, making it easy to deploy from the wrong repo, a fork, or an unreviewed source.
@@ -93,6 +95,8 @@ This is the problem space that Argo CD Projects are designed to solve.
 ---
 
 ## What is an Argo CD Project
+
+![Alt text](/images/5b.png)
 
 An **Argo CD Project** is a **control-plane level construct**, enforced entirely by Argo CD, and is not part of the Kubernetes runtime model.
 
@@ -173,6 +177,8 @@ Projects define **hard GitOps boundaries** that every Argo CD Application must s
 
 ## What is the default Argo CD Project?
 
+![Alt text](/images/5e.png)
+
 Every Argo CD Application belongs to **exactly one Project**. If a Project is not explicitly specified, the Application is automatically assigned to the **default project**.
 
 In all demos so far:
@@ -232,9 +238,11 @@ Projects therefore form the **foundation** for everything that follows: multi-ap
 
 ---
 
-# Demo: Working with AppProject (2-Tier Application)
+# Demo: Working with AppProject
 
 ## What are we going to do?
+
+![Alt text](/images/5c.png)
 
 In this demo, we will work with a simple **two-tier application (`app1`)** consisting of a **frontend** and a **backend**, as shown in the attached diagram.
 
@@ -278,6 +286,8 @@ kubectl port-forward service/my-argo-cd-argocd-server -n argocd 8080:443
 ---
 
 ## Step 1: Repository layout (important context)
+
+![Alt text](/images/5d.png)
 
 From previous lectures, we already know one fundamental GitOps principle:
 
@@ -1026,6 +1036,16 @@ As soon as commits are pushed:
 
 * Argo CD auto-sync triggers
 * Resources are created automatically
+
+
+
+> **Note on repository structure and Application paths**
+In this demo, the Argo CD `Application` manifest and the Kubernetes workload manifests live in the same configuration repository, but they are intentionally placed in different directories. The `Application` CRD points only to the `backend/` (or `frontend/`) path, which means Argo CD reconciles **only the runtime Kubernetes manifests**, not the `Application` definition itself.
+>
+>This does **not** mean that `Application` or `AppProject` YAMLs should not be version-controlled; they absolutely must be. In production, however, these GitOps **control-plane objects** are typically managed **outside their own sync path**. They may be applied manually, created via a higher-level app-of-apps pattern, or generated using `ApplicationSets`. `AppProjects` are often maintained in a separate **platform repository** owned by the platform team, since they define governance, RBAC, and guardrails rather than application runtime state.
+>
+>This separation avoids self-reconciliation, circular dependencies, and unintended deletes, while still keeping all GitOps configuration **fully declarative, auditable, and version-controlled**. We will revisit and deepen this model as we progress through the course.
+
 
 ---
 
