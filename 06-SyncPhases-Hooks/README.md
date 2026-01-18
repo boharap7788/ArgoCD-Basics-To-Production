@@ -36,7 +36,7 @@ If this **repository** helps you, give it a ⭐ to show your support and help ot
   - [Hook cleanup (mandatory in production)](#hook-cleanup-mandatory-in-production)  
 - [**Demo:** Sync Hooks in Argo CD](#demo-sync-hooks-in-argo-cd-presync-postsync-skip)  
   - [Step 0: What we are demonstrating](#step-0-what-we-are-demonstrating-context)  
-  - [Step 0.5: Build and push container images](#step-05-build-and-push-container-images-prerequisite)  
+  - [Step 0.5: Build and push container images](#step-05-build-and-push-container-images) 
   - [Step 1: Create a dedicated namespace](#step-1-create-a-dedicated-namespace)  
   - [Step 2: Create a PreSync hook](#step-2-create-a-presync-hook-backend-preparation)  
   - [Step 3: Create a PostSync hook](#step-3-create-a-postsync-hook-frontend-validation)  
